@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zabbix-agent
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: zabbix-agent
+  template:
+    metadata:
+      labels:
+        app: zabbix-agent
+    spec:
+      containers:
+      - name: zabbix-agent
+        image: zabbix/zabbix-agent:latest
+        env:
+        - name: ZBX_SERVER_HOST
+          value: "3.110.119.153"
+        - name: ZBX_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: proc
+          mountPath: /proc
+          readOnly: true
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-proxy
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zabbix-proxy
+  template:
+    metadata:
+      labels:
+        app: zabbix-proxy
+    spec:
+      containers:
+      - name: zabbix-proxy
+        image: zabbix/zabbix-proxy-sqlite3:latest
+        env:
+        - name: ZBX_SERVER_HOST
+          value: "3.110.119.153"
+        - name: ZBX_HOSTNAME
+          value: "zabbix-proxy"
+        - name: DB_SERVER
+          value: "sqlite3"
+        volumeMounts:
+        - name: zabbix-db
+          mountPath: /var/lib/zabbix
+      volumes:
+      - name: zabbix-db
+        emptyDir: {}
