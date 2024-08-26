@@ -1,32 +1,37 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: zabbix-agent
+  name: zabbix-agent2
   namespace: monitoring
 spec:
   selector:
     matchLabels:
-      app: zabbix-agent
+      app: zabbix-agent2
   template:
     metadata:
       labels:
-        app: zabbix-agent
+        app: zabbix-agent2
     spec:
       containers:
-      - name: zabbix-agent
-        image: zabbix/zabbix-agent:latest
+      - name: zabbix-agent2
+        image: zabbix/zabbix-agent2:latest
         env:
         - name: ZBX_SERVER_HOST
-          value: "3.110.119.153"
+          value: "zabbix-proxy" # Name of the Zabbix Proxy
+        - name: ZBX_SERVER_PORT
+          value: "10051"
         - name: ZBX_HOSTNAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
         volumeMounts:
-        - name: proc
-          mountPath: /proc
+        - name: host-root
+          mountPath: /host-root
           readOnly: true
+        securityContext:
+          privileged: true
       volumes:
-      - name: proc
+      - name: host-root
         hostPath:
-          path: /proc
+          path: /
+          type: Directory
