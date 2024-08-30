@@ -1,0 +1,502 @@
+===========================================================================================================
+#Zabbix_Monitoring#
+===========================================================================================================
+
+#When install on kubernetes install using helm {GO to down side you will get it } #
+=========================================================================================
+
+=========================================================================================
+#Anothre way to install on Ubuntu install zabbix using Zabbix package# 
+Zabbix version = 7.0LTS
+OS - ubuntu 24.04 
+Zabbix commponet - server,frontend,agent
+=======================================================================================================================
+
+1) sudo apt update && sudo apt upgrade -y
+
+2) sudo apt install apache2 -y && sudo apt install mysql-server -y && sudo apt install php php-mbstring php-gd php-xml php-bcmath php-ldap php-mysql -y
+
+3) sudo mysql_secure_installation
+
+5) wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_7.0-2+ubuntu24.04_all.deb
+
+7) sudo dpkg -i zabbix-release_7.0-2+ubuntu24.04_all.deb
+
+8) sudo apt update
+
+9) sudo apt install zabbix-server-mysql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts zabbix-agent -y
+
+# sudo mysql -u root -p
+password
+mysql> create database zabbix character set utf8mb4 collate utf8mb4_bin;
+mysql> create user zabbix@localhost identified by 'password';
+mysql> grant all privileges on zabbix.* to zabbix@localhost;
+mysql> set global log_bin_trust_function_creators = 1;
+mysql> quit;
+
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -uzabbix -p zabbix
+enter password : change_your_pass
+
+# sudo mysql -u root -p
+password
+mysql> set global log_bin_trust_function_creators = 0;
+mysql> quit;
+
+sudo vi /etc/zabbix/zabbix_server.conf
+ go to there and change DBPassword=<change_your_pass>
+ 
+sudo systemctl restart zabbix-server zabbix-agent apache2
+sudo systemctl enable zabbix-server zabbix-agent apache2 
+
+
+========================================================================================================================
+
+#How to access#
+http://65.1.64.103/zabbix
+
+Log In to Zabbix:
+After completing the setup wizard, you can log in to the Zabbix web interface using the default credentials:
+
+Username: Admin
+Password: zabbix
+Enter these credentials on the login page.
+
+===============================================================================================
+#Zabbix_Agent#
+
+wget https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.0-4+ubuntu_all.deb
+sudo dpkg -i zabbix-release_6.0-4+ubuntu_all.deb
+sudo apt update
+
+sudo apt install -y zabbix-agent
+
+sudo vim /etc/zabbix/zabbix_agentd.conf
+
+#edit the key parameters
+Server=your_zabbix_server_ip
+ServerActive=your_zabbix_server_ip
+Hostname=your_host_name
+
+
+sudo systemctl start zabbix-agent
+
+sudo systemctl enable zabbix-agent
+
+sudo systemctl status zabbix-agent
+
+======================================================================================================
+#Zabbix Agent Configuration#
+=======================================================================================================
+sudo vim /etc/zabbix/zabbix_agentd.conf
+
+Ensure the following parameters are correctly set:
+Server=<Zabbix_Server_IP>: This should be the IP address of your Zabbix server.
+ListenPort=10050: Make sure the agent is listening on the default port (10050).
+ListenIP=0.0.0.0: (Optional) If you want the agent to listen on all interfaces.
+ServerActive=<Zabbix_Server_IP>: (Optional) If you're using active checks, specify the Zabbix server's IP here.
+
+sudo systemctl restart zabbix-agent
+
+base64
+QVRBVFQzeEZmR0YwcS1NN0FPUlJvMjBtVDdjakxBejRnTnVETmU5RHM3T2RwMG92UEhPaGREZ0RK
+ajNhLW9BdFZudVNGejhMZHN2SldQeDNva0l1MlpvSVlQTW9JRU85el9PdnRBdVh0VFhEa0t5U0Iz
+RWZ0SGU5SC1ySWxsNy11UzVCNzNnZmhxZmFUemo1NENYeFBJRnRISTZZLUtVWnR2M0tyZTRMbWFN
+R0F3SkRCY3ROZjJnPTQxOTQxODJB
+
+
+======================================================================================
+#Agentless Monitoring of VM using Private IP (SNMP)#
+======================================================================================
+
+after the installtiion of the Zabbix_server 
+1) on VM side
+       you need to install snmp using the command 
+   
+       sudo apt-get update
+       sudo apt-get install snmpd
+       Open an port UDP 161 inside inbound rule on vm
+	   sudo  vi /etc/snmp/snmpd.conf  Modify to => agentAddress udp:161,udp6:[::]:161
+	   sudo systemctl restart snmpd
+	   sudo service snmpd restart
+	   
+	  
+2) On Zabbix_server
+    		
+	    For more information refer PDF Doc
+        Create an Hosts and then Create and item 
+        inside the interface used the private-ip of the VM to monitor 		
+   
+=====================================================================================
+# Monitoring Linux server Using Agent#
+=====================================================================================
+A] Setup an a Zabbix-server 
+    1) Create an Hosts an put the same name which one put inside the Hostname on Monitoring VM . 
+
+B] Set up an a VM which one is Monitoring 
+     1) Create an EC2 instance which one is monitoring using Zabbix.
+    
+     2) Go to cd /etc/zabbix/ 
+        . change the configration 
+        . like Server,serverActive,Hostname 		
+   
+======================================================================================
+#Monitoring Docker Container Using Zabbix with an Agent2#
+======================================================================================
+
+A] Monitoring Docker container using Zabbix 
+
+   1) GO to Cloud provider and like AWS and Make an VM for Zabbix and one for Docker.
+   
+   2) connected using mobaxterm and Configure docker in one VM and Zabbix in another VM used Zabbix offical doc 
+      for installtion of Zabbix .
+	  
+   3) On docker server install docker and then install agent2 using zabbix offical doc,
+      You need to edit an config file of an agent where agent is install.
+   
+   4) Run the Container which one is to montoring .
+   
+   5) Go to Zabbix server and first you need to import template for docker which is store in my desktop >code>Zabbbix 
+      inside the zabbix folder and after the importing the name is "Template App Docker", for any issue refer 
+      png image inside picture>zabbix>z-docker-host.png image.
+	 
+   6) Create an Host	 
+      . Host-name : which one you gives inside the config file 
+	  . Template : used the template which one you import "Template App Docker"
+	  . Host-group : Linux server and VM
+	  . inside the  interface select the agent and paste the public iP of the docker VM 
+	  . Click Add
+	  
+   7) Create an Item if its is not present 
+   
+   8) Create an trigger 
+      . inside the trigger you define the name ,severity and expression which is you want 
+	  
+   9) Create the Media-type # This meddia type is for the crete an JIRA ticket
+     . Go to: Administration > Media types > Create media type
+        Name: Jira Ticket
+        Type: Script
+        Script name: Name the script file, e.g., create_jira_ticket.py 
+	        # Inside this location script file create - sudo vi  /usr/lib/zabbix/alertscripts/create_jira_ticket.py#
+			 do't forget the give a exuecute permission to the file - sudo chmod +x create_jira_ticket.py
+			 This file is present inside the notepad ++ whish is zabbix-jira.txt
+        Script parameters:
+          {ALERT.SUBJECT} as the first parameter.
+          {ALERT.MESSAGE} as the second parameter.
+		- Also add a massage template inside the meddia
+		  
+   10) After creating the media type you need to Map meddia to the user 
+      . Go to Users>Users>media>add the media  
+	  
+   11) Configure Actions
+      .Go to: Configuration > Actions > Trigger actions > Create action
+      .Name: Create Jira Ticket
+      .Conditions: Set the conditions that will trigger this action.
+      .Operations: Add the operation to use the Jira Ticket media type, sending the alert details as parameters.
+	  
+   12) Test It
+   
+B] Monitoring the infrstures using the Zabbix 
+  
+  1) Create an Host 
+    . Host name: VM docker or any if you want
+    . template : linux by zabbix agent
+    . Host group is Linux server
+   	. inside the interface you give the public ip of an server and select an agent 
+	. {$AGENT.TIMEOUT} inside the macro you can define the shorter time in sec
+	
+  2) Then same aboue process you can follow  7 to 12 .
+  
+===================================================================================================================
+# Monitoring EKS cluster using Zabbix#
+===================================================================================================================
+
+A} Setup on EKS cluster
+   1) create an EKS cluster on AWS.
+     Helm installtion
+	 $ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+     $ chmod 700 get_helm.sh
+     $ ./get_helm.sh
+   
+   2) Install zabbix-agent and proxy using helm chart
+   
+     . Clone the REPO - git clone https://git.zabbix.com/scm/zt/kubernetes-helm.git
+	 
+	 . cd kubernetes-helm
+	    * edit an values.yml file
+		* like ZBX_SERVER_HOST :- Put zabbix server ip address
+		* also you can edit an ZBX_HOSTNAME 
+		* Note is - if you have used zabbix_version 7.0LTS used proxy version is docker image tag is-[7.0.3-alpine]
+		
+	 . kubectl create namespace monitoring
+	 
+	 . helm install zabbix . --dependency-update -f values.yaml -n monitoring
+	 
+	 . Get the token automatically created for the service account
+	    * kubectl get secret zabbix-service-account -n monitoring -o jsonpath={.data.token} | base64 -d
+		* copy the token and used it when we have to create an HOSTS inside the Zabbbix
+		
+	 . kubectl get all -n monitoring	
+	 
+	 . helm uninstall zabbix -n monitoring # used to uninstall the deployment	
+	
+--------------------------------------------------------------------------------------------	
+B} 	Setup On Zabbix_server 
+
+   1) Create an New VM and Setup a ZABBIX version using package
+   
+   2) First Create an Proxy 
+     . GO to Administration > Proxies > create proxy
+	 
+	 . enter a name of proxy which is given inside to the values.yaml file -ZBX_HOSTNAME
+	 
+	 . save it
+	 
+   3) create an hosts   
+	   
+	 . Hosts name : give a unique hostname or you can give ZBX proxy name as well
+   
+     . Template :    
+	 
+         *Kubernetes API server by HTTP	
+         *Kubernetes cluster state by HTTP	
+         *Kubernetes Controller manager by HTTP	
+		 *Kubernetes Kubelet by HTTP	
+		 *Kubernetes Scheduler by HTTP
+     . Hosts Group is - Zabbix-server
+	 
+	 . and selected proxy 
+	 
+
+eyJhbGciOiJSUzI1NiIsImtpZCI6ImNXdE5KUXlZTG5qLWhVRmVLSlpXS0lnRkJycGc1WUpXamFNQkt2Q0Z4M2cifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtb25pdG9yaW5nIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6InphYmJpeC1zZXJ2aWNlLWFjY291bnQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiemFiYml4LXNlcnZpY2UtYWNjb3VudCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjIzNmFjNDYxLTY4NDYtNDM0YS04YmNmLTEwNjgyZDI5ZjYzNSIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptb25pdG9yaW5nOnphYmJpeC1zZXJ2aWNlLWFjY291bnQifQ.MTKPSWii_YcZ7IgU4zGteA7VFMdRIQi2TVhGXTiPx9H_N9lYuvUnrtSMlyvq--GZ0SjBwGSww-QHR0VJLuRZuUwxlUR3JZqcuiMQkn-GKZrd2U77J6PK9JA_c_K7qjE8Lw0XjfXXUnPBoBww1DlRHqUpljZWsPJfNCwTGExoYzWNzgftpJDAS5Og5TzMJRn5wNjZODa5qwNcMgu9KxucZ0VzMaH7ewfyysDqOedg1A5sSRGCqYa5gG0Yk2b0ccvxgjHwWGt0sO1Z9ciirUjC_xiyBurXpDBoj8rEDc9tdCAuF_NBz-D3QjXSslk-pz8b2yW1ggNjDHEXYBlI4HpuSQ	
+
+=======================================================================================================
+#Monitoring a JAVA Application using ZABBIX#
+======================================================================================================= 
+
+You need to change the dockerfile CMD command for to enable the 
+CMD ["java", "-Dcom.sun.management.jmxremote", \
+             "-Dcom.sun.management.jmxremote.port=12345", \
+             "-Dcom.sun.management.jmxremote.local.only=false", \
+             "-Dcom.sun.management.jmxremote.authenticate=false", \
+             "-Dcom.sun.management.jmxremote.ssl=false", \
+             "-jar", "your-application.jar"]
+
+	
+	
+2) You need to do some changes inside the values.yaml file 
+     ## The variable enable communication with Zabbix Java Gateway to collect Java related checks
+    - name: ZBX_JAVAGATEWAY_ENABLE
+      value: true 
+
+3) Install The Java-Gateway on Zabbix_server 
+    do some changes inside the 	 sudo vi /etc/zabbix/zabbix_server.conf file
+	 . Is javaGateway = "where your java-gateway is running IP " like in my case my gateway is running on 
+	  same server"127.0.0.1".
+	  
+	 . javaGatewayport = 10052
+    
+     . startjavapoller = 5	
+	
+4) create an host 
+     . host name is : java application
+    
+     . Template : Genric java JMX
+ 
+     . Host group : Application
+
+     . inside the Interface select the JMX
+     
+     . put the IP addresss where your javaGate is runnning # Make sure you want to add an inbbound rules 
+
+     . Click on Add 
+	 
+=======================================================================================================
+#Monitoring the MongoDB Database using Zabbbbix which one is on VM#
+=======================================================================================================	 
+	 
+A] Install the MongoDB on Server 
+ 
+    1) setup an ubuntu VM and install the MongoDB on the server
+	
+	2) create an a zabbix user 
+	  use admin 
+	  db.createUser({
+     user: "zabbix",
+     pwd: "zabbix",
+     roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+     })
+	
+    3) Install a agent2 on the VM which were mongoDB is install 
+
+    4) change the config which is  cd /etc/zabbix/zabbix_agent2.config 
+     server= <put zabbix_server ip address>	
+	 serverActive= <put zabbix_server ip address>	
+	 Hostname : Mongodb
+	 
+    5) enable and restart the agent2 
+	
+B] Zabbix_server  
+  
+   1) Create an hosts 
+     . Hostname : put which one is gives inside the agent2 config file like MongoDB
+	 
+	 . template : mongodb node by zabbbix agent2
+	 
+	 . Hostgroup : Database
+	 
+	 . Interface : choose agent and put mongodb VM ip Address
+	 
+	 . Go to Macro tab and change username and password of the user
+	 
+	 . click on add button
+	 
+
+
+===================================================================================================================
+3. Monitor Key Performance Metrics 
+--------------------------------------
+   . CPU Usage: Track CPU utilization to monitor the load on the server or device.
+   
+   . Memory Usage: Monitor RAM usage to detect memory leaks or high memory consumption.
+   
+   . Disk I/O: Measure disk read/write speeds to identify potential bottlenecks in storage performance.
+   
+   . Network Traffic: Track incoming and outgoing network traffic to detect bandwidth issues or unusual activity.
+   
+   . Application Performance: Use Zabbix agents or external scripts to monitor specific application metrics 
+        like response times, error rates, or database query performance.
+		
+====================================================================================================================	
+
+# Summary:
+     =: Checks equality.
+     <>: Checks inequality (not equal).
+     <: Checks if less than.
+     >: Checks if greater than.
+     <=: Checks if less than or equal to.
+     >=: Checks if greater than or equal to.
+	 
+	 
+=====================================================================================================================
+#Monitoring The Website using the Web-secnario#
+=====================================================================================================================
+
+Using another method is ued to monitoring the website using the browser 
+for more details you can refere this blog => 
+
+https://www.initmax.com/wiki/installation-and-basic-usage-of-browser-item/
+
+#Note- For that docker installtion used official Docker website.
+===================================================================================================
+A] 
+  1) Setup a Zabbix_server
+  
+  2) Create an a Hosts
+     . Gives Hosts name is : web monitoring 
+	 . choose group  : linux server
+	 . do not select any click on Add 
+	 
+  3) Go to Hosts > web 
+     . Name : wikipidia website monitoring
+	 . update interval: 15s 
+	 . attempt: 10
+	 . agent : zabbix or if any 
+	 . Go to steps > click on add
+	 . Fill the Name : first page of the wikipida 
+	 . URL : Put the application  URL which one is monitoring
+	 . timeout : it genrally 15s or 60s 
+	 . requried string : put string on the webpage
+	 . Requried Status code is : 200
+	 . Click on Add 
+	 . if you can add a multiple steps . 
+	 . Click on Add
+	
+   4) Create an trigger 
+     . Go to Hosts > trigger 
+	 . fill out Name 
+	 . select the severity as per the problem
+	 . choose the express is response code is <> 200 [OR] Failed step of scenario "Website monitoring"= 1
+	 . If you want to add a deley of 1min => min(/Wikipidia Website monitoring/web.test.fail[Website monitoring],1m)=1
+	 
+	 .min(..., 1m): This function checks the minimum value of the monitored item (web.test.fail) over the past 1 minute.
+	 
+     .=1: The trigger will only activate if the value has been 1 (indicating a failure) for the entire 1-minute period.
+	 
+	 . You can Give a discription as per your trigger 
+	 . Click on Add .
+	
+   5) Create the Media-type # This meddia type is for the crete an JIRA ticket
+     . Go to: Administration > Media types > Create media type
+        Name: Jira Ticket
+        Type: Script
+        Script name: Name the script file, e.g., create_jira_ticket.py 
+	        # Inside this location script file create - sudo vi  /usr/lib/zabbix/alertscripts/create_jira_ticket.py#
+			 do't forget the give a exuecute permission to the file - sudo chmod +x create_jira_ticket.py
+			 This file is present inside the notepad ++ whish is zabbix-jira.txt
+        Script parameters:
+          {ALERT.SUBJECT} as the first parameter.
+          {ALERT.MESSAGE} as the second parameter.
+		- Also add a massage template inside the meddia
+		  
+   6) After creating the media type you need to Map meddia to the user 
+      . Go to Users>Users>media>add the media  
+	  
+   7) Configure Actions
+      .Go to: Configuration > Actions > Trigger actions > Create action
+      .Name: Create Jira Ticket
+      .Conditions: Set the conditions that will trigger this action.
+      .Operations: Add the operation to use the Jira Ticket media type, sending the alert details as parameters.
+	  
+   8) Test It	
+   
+   
+======================================================================================================================
+#Monitoring the PostgreSQL Using Zabbix#
+======================================================================================================================
+
+A] Postgres SQL Server
+   
+   1) sudo apt update && sudo apt upgrade -y
+   
+   2) sudo apt install postgresql postgresql-contrib -y
+   
+   3)sudo systemctl start postgresql
+     sudo systemctl enable postgresql
+	 
+   4) sudo -i -u postgres
+      psql
+      CREATE USER zbx_monitor WITH PASSWORD '<PASSWORD>' INHERIT;
+      GRANT pg_monitor TO zbx_monitor;
+      \q
+      exit
+    
+   6) Install Agent2 On the VM and config the server,serverActive and Hostname 
+       . Set Server and ServerActive to your Zabbix server IP.
+       . Set Hostname to match the name used in Zabbix frontend.
+	   
+   7) Configure PostgreSQL pg_hba.conf File  
+       sudo vi /etc/postgresql/16/main/pg_hba.conf
+	   #Zabbix Github repo => https://github.com/zabbix/zabbix.git
+
+	   
+   8) Add the Following Line to Allow Local Connections:
+      host    all    zbx_monitor    0.0.0.0/0    trust
+    
+   9) sudo systemctl reload postgresql
+   
+   sudo nano /etc/postgresql/16/main/postgresql.conf  => listen_addresses = '*'
+   sudo nano /etc/postgresql/16/main/pg_hba.conf      => host    yourdatabase    zabbix_monitor    0.0.0.0/0    md5
+------------------------------------------------------------------------------------------------------------------------   
+   
+B] Zabbix_server
+   . Go to Zabbix server
+   . Create Hosts 
+   . Hostname : put the host name which one is config inside the agent2 config file
+   . Template : Postgres SQL zabbix agent2
+   . Host group : Zabbix server
+   . Interface : Choose interface is agent and put the ip[ addresss of the postgres sql 
+   . click on the Add button
+   . Go to Macros and Edit password 
+   
+   
+ 

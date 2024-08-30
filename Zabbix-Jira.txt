@@ -1,0 +1,118 @@
+=================================================================================================
+#This script code is used for create an jira ticket using Zabbix monitoring#
+=================================================================================================
+
+#!/usr/bin/env python3
+import requests
+import sys
+
+jira_url = "https://shubhamssc100-1715762728729.atlassian.net/rest/api/2/issue"
+jira_auth_0 = ("shubham.ssc100@gmail.com", "")
+jira_project_key = "KAN"
+jira_issue_type = "Task"  # or any other issue type you want to use
+
+def create_jira_ticket(summary, description):
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    data = {
+        "fields": {
+            "project": {
+                "key": jira_project_key
+            },
+            "summary": summary,
+            "description": description,
+            "issuetype": {
+                "name": jira_issue_type
+            }
+        }
+    }
+    response = requests.post(jira_url, json=data, headers=headers, auth=jira_auth)
+    if response.status_code == 201:
+        print("Ticket created successfully")
+    else:
+        print("Failed to create ticket: ", response.text)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    summary = sys.argv[1]
+    description = sys.argv[2]
+    create_jira_ticket(summary, description)
+
+
+==========================================================================================
+#Jira-Ticket-with an assigne(Shubham Shinde)#
+==========================================================================================
+#!/usr/bin/env python3
+import requests
+import sys
+
+# Jira API details
+jira_url = "https://shubhamssc100-1715762728729.atlassian.net/rest/api/2/issue"
+jira_auth_0 = ("shubham.ssc100@gmail.com", "")
+jira_project_key = "KAN"
+jira_issue_type = "Task"  # or any other issue type you want to use
+
+# Assignee details
+jira_assignee_account_id = "712020:ae13129a-476e-458a-9a49-75c7066e4d21"
+
+def create_jira_ticket(summary, description):
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    data = {
+        "fields": {
+            "project": {
+                "key": jira_project_key
+            },
+            "summary": summary,
+            "description": description,
+            "issuetype": {
+                "name": jira_issue_type
+            },
+            "assignee": {
+                 "accountId": jira_assignee_account_id
+            }
+        }
+    }
+    response = requests.post(jira_url, json=data, headers=headers, auth=jira_auth)
+    if response.status_code == 201:
+        print("Ticket created successfully and assigned to:",  jira_assignee_account_id)
+    else:
+        print("Failed to create ticket: ", response.text)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    summary = sys.argv[1]
+    description = sys.argv[2]
+    create_jira_ticket(summary, description)
+
+ 
+ ================================================================================
+ #Process#
+ 
+ 2. Create the Media Type in Zabbix
+     Go to: Administration > Media types > Create media type
+     Name: Jira Ticket
+     Type: Script
+     Script name: Name the script file, e.g., create_jira_ticket.py 
+	        # Inside this location script file create - sudo vi  /usr/lib/zabbix/alertscripts/create_jira_ticket.py#
+			 do't forget the give a exuecute permission to the file - sudo chmod +x create_jira_ticket.py
+     Script parameters:
+     {ALERT.SUBJECT} as the first parameter.
+     {ALERT.MESSAGE} as the second parameter.
+
+3. Create a User with this Media Type
+     Go to: Administration > Users > Create user
+     Media: Add the Jira Ticket media type to the user.
+     Send to: Leave this field empty or provide some default text as it won’t be used by the script or type jira.
+	 
+	 
+4. Configure Actions
+     Go to: Configuration > Actions > Trigger actions > Create action
+     Name: Create Jira Ticket
+     Conditions: Set the conditions that will trigger this action.
+     Operations: Add the operation to use the Jira Ticket media type, sending the alert details as parameters.	 
+	 

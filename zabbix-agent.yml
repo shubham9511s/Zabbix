@@ -17,7 +17,7 @@ spec:
         image: zabbix/zabbix-agent2:latest
         env:
         - name: ZBX_SERVER_HOST
-          value: "zabbix-proxy" # Name of the Zabbix Proxy
+          value: "15.207.98.162" # Name of the Zabbix Proxy
         - name: ZBX_SERVER_PORT
           value: "10051"
         - name: ZBX_HOSTNAME
